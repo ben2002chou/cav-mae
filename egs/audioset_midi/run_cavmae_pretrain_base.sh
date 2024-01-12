@@ -22,7 +22,7 @@ model=cav-mae
 masking_ratio=0.75
 mask_mode=unstructured # or time, or freq, or tf
 contrast_loss_weight=0.01 # cavmae uses 0.01
-mae_loss_weight=0.0 # cavmae uses 1.0
+mae_loss_weight=1.0 # cavmae uses 1.0
 tr_pos=False
 norm_pix_loss=False
 
@@ -45,9 +45,11 @@ batch_size=48 # use 48 to avoid memory error # no MAE can handle up to 128
 lr_adapt=False
 
 dataset=audioset
-# tr_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_2m_cocochorals_train.json
-tr_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_20k_cocochorals_test.json
+tr_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_2m_cocochorals_train.json
+# tr_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_20k_cocochorals_test.json
+# tr_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_2m_cocochorals_test_h5.json
 te_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_eval_cocochorals_valid.json
+#te_data=/home/ben2002chou/code/cav-mae/data/cocochorals/audioset_eval_cocochorals_valid_h5.json
 label_csv=/home/ben2002chou/code/cav-mae/data/cocochorals/class_labels_indices_combined.csv
 
 exp_dir=./exp_midi/testmae02-${dataset}-${model}-bal${bal}-lr${lr}-epoch${epoch}-bs${batch_size}-norm${norm_pix_loss}-c${contrast_loss_weight}-p${mae_loss_weight}-tp${tr_pos}-mr-${mask_mode}-${masking_ratio}

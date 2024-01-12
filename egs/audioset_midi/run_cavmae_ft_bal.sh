@@ -18,8 +18,8 @@ ftmode=multimodal
 
 cur_dir=$(pwd)
 wget -nc https://www.dropbox.com/s/l5t5geufdy3qvnv/audio_model.21.pth?dl=1 -O cav-mae-scale++.pth
-pretrain_path=${cur_dir}/cav-mae-scale++.pth
-
+#pretrain_path=${cur_dir}/cav-mae-scale++.pth
+pretrain_path=/home/ben2002chou/code/cav-mae/exp_midi/testmae02-audioset-cav-mae-balNone-lr5e-5-epoch25-bs48-normFalse-c0.01-p1.0-tpFalse-mr-unstructured-0.75/models/best_audio_model.pth
 freeze_base=False
 head_lr=100 # newly initialized ft layers uses 100 times larger than the base lr
 

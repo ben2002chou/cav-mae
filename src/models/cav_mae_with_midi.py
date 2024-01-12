@@ -857,6 +857,10 @@ class CAVMAE(nn.Module):
         valid_samples_mask_imgs = [
             not torch.all(torch.abs(img - 0.01) < tolerance) for img in imgs
         ]
+        # valid_samples_mask_audio1 = ~(audio1 == 0).all(dim=1).all(dim=1)
+        # valid_samples_mask_audio2 = ~(audio2 == 0).all(dim=1).all(dim=1)
+        # valid_samples_mask_imgs = ~(imgs == 0).all(dim=1).all(dim=1).all(dim=1)
+
         # print(valid_samples_mask_imgs)
 
         # Convert lists to tensors

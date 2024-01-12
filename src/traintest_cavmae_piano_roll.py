@@ -163,7 +163,7 @@ def train(audio_model, train_loader, test_loader, args):
                     c_acc.mean(),
                 )
 
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -179,6 +179,9 @@ def train(audio_model, train_loader, test_loader, args):
             per_sample_dnn_time.update(
                 (time.time() - dnn_start_time) / a1_input.shape[0]
             )
+            # TODO: Check if this is messing up the memory
+            del a1_input, a2_input, v_input, loss
+            torch.cuda.empty_cache()  # Use this sparingly
 
             print_step = global_step % args.n_print_steps == 0
             early_print_step = (
@@ -363,6 +366,7 @@ def validate(audio_model, val_loader, args):
                     contrast_loss_weight=args.contrast_loss_weight,
                     mask_mode=args.mask_mode,
                 )
+                
                 loss, loss_mae, loss_mae_a1, loss_mae_a2, loss_mae_v, loss_c, c_acc = (
                     loss.sum(),
                     loss_mae.sum(),
