@@ -9,22 +9,28 @@
 #SBATCH --output=../log/%j_as_pretrain.txt
 
 # run cav-mae pretraining, use smaller lr and batch size, fits smaller GPUs (4*12GB GPUs)
+# NCCL_COLLNET_ENABLE=1
+# NCCL_NET_GDR_LEVEL=PHB
+TORCH_DISTRIBUTED_DEBUG = INFO
+NHOSTS=$(wc -l < "${PBS_NODEFILE}")
+NGPU_PER_HOST=$(nvidia-smi -L | wc -l)
+NGPUS="$((${NHOSTS}*${NGPU_PER_HOST}))"
 
 set -x
 # . /data/sls/scratch/share-201907/slstoolchainrc
 # source /data/sls/scratch/yuangong/avbyol/venv-a5/bin/activate
 # export TORCH_HOME=../../pretrained_models
-cd /home/ben2002chou/code/cav-mae
+cd /home/ben2002chou/code/cav-mae-pl/cav-mae
 source cavmae1017/bin/activate
-export TORCH_HOME=/home/ben2002chou/code/cav-mae/pretrained_model
+export TORCH_HOME=/home/ben2002chou/code/cav-mae-pl/cav-mae/pretrained_model
 
 model=cav-mae
 masking_ratio=0.75
 mask_mode=unstructured # or time, or freq, or tf
-contrast_loss_weight=0.01
-mae_loss_weight=1.0
+contrast_loss_weight=0.01 # cavmae uses 0.01
+mae_loss_weight=1.0 # cavmae uses 1.0
 tr_pos=False
-norm_pix_loss=True
+norm_pix_loss=False
 
 cur_dir=$(pwd)
 wget -nc https://www.dropbox.com/s/9nlz523a5q52w86/ori_mae_11.pth?dl=1 -O IN-initial.pth
@@ -41,18 +47,23 @@ dataset_std=4.4849
 target_length=1024
 noise=True
 mixup=0.0
-batch_size=48
+batch_size=24 # use 48 to avoid memory error # no MAE can handle up to 128
 lr_adapt=False
 
 dataset=audioset
-tr_data=/home/ben2002chou/code/cav-mae/data/audioset_2m_filtered.json
+tr_data=/home/ben2002chou/code/cav-mae/data/audioset_20k_filtered.json
 te_data=/home/ben2002chou/code/cav-mae/data/audioset_eval_filtered.json
 label_csv=/home/ben2002chou/code/cav-mae/data/class_labels_indices.csv
 
 exp_dir=./exp/testmae02-${dataset}-${model}-bal${bal}-lr${lr}-epoch${epoch}-bs${batch_size}-norm${norm_pix_loss}-c${contrast_loss_weight}-p${mae_loss_weight}-tp${tr_pos}-mr-${mask_mode}-${masking_ratio}
-mkdir -p $exp_dir
 
-CUDA_CACHE_DISABLE=1 python -W ignore src/run_cavmae_pretrain.py --model ${model} --dataset ${dataset} \
+mpiexec \
+--verbose \
+--envall \
+-n "${NGPUS}" \
+--ppn "${NGPU_PER_HOST}" \
+--hostfile="${PBS_NODEFILE}" \
+python -W ignore src/run_cavmae_pretrain.py --model ${model} --dataset ${dataset} \
 --data-train ${tr_data} --data-val ${te_data} --exp-dir $exp_dir \
 --label-csv ${label_csv} --n_class 527 \
 --lr $lr --n-epochs ${epoch} --batch-size $batch_size --save_model True \
@@ -61,6 +72,7 @@ CUDA_CACHE_DISABLE=1 python -W ignore src/run_cavmae_pretrain.py --model ${model
 --dataset_mean ${dataset_mean} --dataset_std ${dataset_std} --target_length ${target_length} --noise ${noise} --warmup True \
 --lr_adapt ${lr_adapt} \
 --norm_pix_loss ${norm_pix_loss} \
---pretrain_path ${pretrain_path} \
 --mae_loss_weight ${mae_loss_weight} --contrast_loss_weight ${contrast_loss_weight} \
 --tr_pos ${tr_pos} --masking_ratio ${masking_ratio} --mask_mode ${mask_mode}
+# --pretrain_path ${pretrain_path} \
+# CUDA_CACHE_DISABLE=1 

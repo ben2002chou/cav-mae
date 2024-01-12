@@ -53,8 +53,6 @@ label_csv=/home/ben2002chou/code/cav-mae/data/class_labels_indices.csv
 exp_dir=./exp/testmae01-${dataset}-${model}-bal${bal}-lr${lr}-epoch${epoch}-bs${batch_size}-norm${norm_pix_loss}-c${contrast_loss_weight}-p${mae_loss_weight}-tp${tr_pos}-mr-${mask_mode}-${masking_ratio}-a5
 mkdir -p $exp_dir
 
-nvidia-smi -l 1 --format=csv --query-gpu=timestamp,name,utilization.gpu,utilization.memory,memory.total,memory.free,memory.used > nvidia_log_${SLURM_JOB_ID}.txt &
-
 CUDA_CACHE_DISABLE=1 python -W ignore src/run_cavmae_pretrain_midi.py --model ${model} --dataset ${dataset} \
 --data-train ${tr_data} --data-val ${te_data} --exp-dir $exp_dir \
 --label-csv ${label_csv} --n_class 527 \
